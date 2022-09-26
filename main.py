@@ -1,3 +1,7 @@
+
+# Python
+from typing import Optional
+
 from fastapi import FastAPI
 from fastapi import Path
 from fastapi_utils.tasks import repeat_every
@@ -6,87 +10,154 @@ from enum import Enum
 from config.db import client
 import pymongo
 
-from scrapers.infobae import infobae_scraping
-from scrapers.dolarhoy import dolarhoy_scraping
+from scrapers.infobae import infobae_scrap
+from scrapers.dolarhoy import dolarhoy_scrap
 
 app = FastAPI()
 
+# Mongo
+db = client["dolares"]
+collection_dolarhoy = db["dolarhoy"]
+collection_infobae = db["infobae"]
 
-class Dolares(Enum):
-    dolar_libre = "Dólar Libre"
+dicconario = {
+    "dolar_libre" : "Dólar Libre",
+    "dolar_targeta" : "Dólar tarjeta",
+    "dolar_mep" : "Dólar MEP",
+    "ccl" : "Contado con liqui",
+    "banco_nacion" : "Dólar Banco Nación",
+    "riesgo_pais" : "Riesgo País",
+    "dolar_mayorista" : "Dólar Mayorista",
+    "dolar_bolsa" : "Dólar Bolsa",
+    "banco_nacion" : "Banco Nación",
+}
 
 
-def get_dolars(cursor, string = None):
-    """
-    """
-    dolares = []
-    for key in cursor:
-        dolares.append(key["Dólar Libre"])
+class Dolares_dolarhoy(str, Enum):
+    dolar_libre = "dolar_libre"
+    dolar_mayorista = "dolar_mayorista"
+    dolar_bolsa = "dolar_bolsa"
+    ccl = "ccl"
+    banco_nacion = "banco_nacion"
 
-    return dolares
+class Dolares_infobae(str, Enum):
+    dolar_libre = "dolar_libre"
+    dolar_targeta = "dolar_targeta"
+    dolar_mep = "dolar_mep"
+    ccl = "ccl"
+    banco_nacion = "banco_nacion"
+    riesgo_pais = "riesgo_pais"
 
-
-@repeat_every(seconds= 60*20 ,wait_first=False)
-@app.on_event("startup")
+#@repeat_every(seconds= 60*20 ,wait_first=False)
+#@app.on_event("startup")
 def first_scraping():
-    """
-    Get the dollar value when the server starts and every twenty minutes
-    """
+
 
     # Scraping Infobae
     db = client["dolares"]
-    dolars_jsn = infobae_scraping()
+    dolars_jsn = infobae_scrap()
     collec = db["infobae"]
     collec.insert_many(dolars_jsn)
 
-    # Scraping Dolarhoy
+    # Dolarhoy
     db = client["dolares"]
-    dolar_jsn = dolarhoy_scraping()
+    dolar_jsn = dolarhoy_scrap()
     collec = db["dolarhoy"]
     collec.insert_many(dolar_jsn)
 
-
-@app.get("/")
-def home():
-
-    # Consulta mongo
-    db = client["dolares"]
-    collec_inf = db["infobae"]  
-    collec_dlrhoy = db["dolarhoy"] 
-
-    dolares_inf =  collec_inf.find()
-    dolares_dlrhoy =  collec_dlrhoy.find()
-    
-    dlres = get_dolars(dolares_dlrhoy,)
-
-    return dlres
+    return 0
 
 
-@app.get("/infobae")
-def home():
-    return {"infobae":"dolar"}
-
-@app.get("/dolarhoy/dolar_blue") 
+@app.get("/") # dolares ultima cotizacion infobae y dolarhoy
 def home():
     
-    db = client["dolares"]
-    collec_dlrhoy = db["dolarhoy"] 
+    response_ = []
+    for documento in  collection_dolarhoy.find({}).limit(1).sort([('$natural',-1)]):
+        d = documento["Dólar Libre"]
+        d["Pagina"] = "Dolarhoy"
+        response_.append(d)
+        
+    for documento in  collection_infobae.find({}).limit(1).sort([('$natural',-1)]):
+        d = documento["Dólar Libre"]
+        d["Pagina"] = "Infobae"
+        response_.append(d)
 
-    dolares_dlrhoy =  collec_dlrhoy.find()
-    dlres = get_dolars(dolares_dlrhoy)
+    return response_
 
-    return dlres
-
-#@app.get("/dolarhoy/{dolar}")
+@app.get("/infobae/{dolar}")
 def dolarhoy_dolar(
-    dolar : str = Path(...)
+    dolar : Dolares_infobae = Path(
+        ...,
+        title = "Name of dollars to get",
+    ),
 ):
-    db = client["dolares"]
-    collec_dlrhoy = db["dolarhoy"] 
+    dolar_=dicconario[dolar]
 
-    cursor_dlrhoy =  collec_dlrhoy.find()
-    dlres = get_dolars(cursor_dlrhoy,dolar)
+    response_ = []
+    for documento in  collection_infobae.find({}):
+        response_.append(documento[dolar_])
+        
+    return response_
 
-    return dlres
+@app.get("/infobae/{dolar}/{amount}")
+def ss(
+    dolar : Dolares_infobae = Path(
+        ...,
+        title = "Name of dollars to get",
+    ),
+    amount : Optional[int] = Path(
+        ...,
+        gt=0,
+        le=101,
+        title="Amounts of values of dollars to get",
+        description="Integers between zero and hundred"
+    )  
+):
+    dolar_=dicconario[dolar]
+
+    response_ = []
+    for documento in  collection_infobae.find({}).limit(amount):
+        response_.append(documento[dolar_])
+
+    return response_
+
+@app.get("/dolarhoy/{dolar}")
+def dolarhoy_dolar(
+    dolar : Dolares_dolarhoy = Path(
+        ...,
+        title = "Name of dollars to get",
+    ),
+):
+
+    dolar_=dicconario[dolar]
+    response_ = []
+    for documento in  collection_dolarhoy.find({}):
+        response_.append(documento[dolar_])
+        
+    return response_
+
+@app.get("/dolarhoy/{dolar}/{amount}")
+def sss(
+    dolar : Dolares_dolarhoy = Path(
+        ...,
+        title = "Name of dollars to get",
+        
+    ),
+    amount : Optional[int] = Path(
+        ...,
+        gt=0,
+        le=101,
+        title="Amounts of values of dollars to get",
+        description="Integers between zero and hundred"
+    )  
+):
+
+    dolar_=dicconario[dolar]
+
+    response_ = []    
+    for documento in  collection_dolarhoy.find({}).limit(amount):
+        response_.append(documento[dolar_])
+
+    return response_
 
 
