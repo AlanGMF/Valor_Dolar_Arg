@@ -1,7 +1,8 @@
 from datetime import datetime
 from .base import base_scraping
 
-def dolarhoy_scraping():
+def dolarhoy_scraping() -> list[dict]:
+
     url = "https://dolarhoy.com/cotizacion-dolar-blue"
     xpath = '//div[@class="tile is-child"]/a[contains(@href,"dolar")]/div/text()'
 
@@ -12,8 +13,8 @@ def dolarhoy_scraping():
 
     list_jsn=[]
     jsn = {}
-
-    for p in range(0,len(dolars_list),3):
+    
+    for p in range(0, len(dolars_list), 3):
         jsn[dolars_list[p]] = {
             "compra" : dolars_list[p+1],
             "venta" : dolars_list[p+2],

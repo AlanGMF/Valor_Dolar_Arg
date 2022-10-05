@@ -1,9 +1,9 @@
 from datetime import datetime
 from .base import base_scraping
 
-def infobae_scraping():
-    url = "https://www.infobae.com/economia/divisas/dolar-hoy/"
-    xpath = '//div[@class="excbar"]//a/p/text()'
+def dolarhoy_scraping():
+    url = "https://www.cronista.com/MercadosOnline/dolar.html"
+    xpath = 'response.xpath("//tr")'
 
     dolars_list = base_scraping(url, xpath)
 
@@ -13,13 +13,13 @@ def infobae_scraping():
     list_jsn=[]
     jsn = {}
 
-    for p in range(0,len(dolars_list),2):
+    for p in range(0,len(dolars_list),3):
         jsn[dolars_list[p]] = {
             "compra" : dolars_list[p+1],
-            "venta" : '-',
+            "venta" : dolars_list[p+2],
             "date" : date
         }
-        
+
     list_jsn.append(jsn)
 
     return list_jsn
