@@ -4,3 +4,4 @@ fastapi_utils
 fastapi
 lxml
 requests
+python-decouple
