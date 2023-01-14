@@ -15,6 +15,8 @@ app.include_router(dolarhoy_router)
 app.include_router(cronista_router)
 app.include_router(root_router)
 
+MINUTES_FOR_RERUN = 20
+
 
 def compare_last_date(collection, data: dict) -> dict:
     """ gets the last values of the dollars loaded on the page
@@ -58,7 +60,7 @@ def compare_last_date(collection, data: dict) -> dict:
 
 
 @app.on_event("startup")
-@repeat_every(seconds=60*1, wait_first=False)
+@repeat_every(seconds=60*MINUTES_FOR_RERUN, wait_first=False)
 def save_dolarhoy_dollars_values() -> None:
 
     dolarhoy_dollars_data = dolarhoy_scraping()
