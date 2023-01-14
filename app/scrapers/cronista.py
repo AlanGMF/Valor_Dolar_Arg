@@ -1,8 +1,7 @@
-from datetime import datetime
+import logging
+
 import requests
 from lxml import html
-
-import logging
 from pathlib import Path
 
 log_file = str(Path(__file__).parent.joinpath("logs_web_scraping.log"))
@@ -15,7 +14,8 @@ logging.basicConfig(
     datefmt="%Y-%m-%dT%H:%M:%S%z"
 )
 
-def cronista_scraping() -> list[dict] | None:
+
+def cronista_scraping() -> list[dict]:
     """ Get the dollar values on the page
 
     :return: list with a json that contains the values of purchase,
@@ -23,19 +23,19 @@ def cronista_scraping() -> list[dict] | None:
     :rtype: list[dict]
     """
 
-    url = "https://www.cr" + "onista.com/MercadosOnline/dolar.html"
+    url = "https://www.cronista.com/MercadosOnline/dolar.html"
 
     # Request url
     try:
         response = requests.get(url)
     except Exception as e:
-        logging.error("Error with Cro" + "nista url: " + str(e))
+        logging.error("Error with Cronista url: " + str(e))
         return None
-    
+
     try:
         parser = html.fromstring(response.content)
     except Exception as e:
-        logging.error("Error procecing Cro" + "nista response" + str(e))
+        logging.error("Error procecing Cronista response" + str(e))
         return None
 
     # Get data from html
@@ -46,7 +46,9 @@ def cronista_scraping() -> list[dict] | None:
     dollar_buy_list = parser.xpath(
         '//tr//td[@class="buy"]/a//div[@class="buy-value"]/text()'
         )
-    logging.info(f"Purchase prices of dollars extracted: {len(dollar_buy_list)}")
+    logging.info(
+        f"Purchase prices of dollars extracted: {len(dollar_buy_list)}"
+    )
     dollar_sell_list = parser.xpath(
         '//tr//td[@class="sell"]/a//div[@class="sell-value"]/text()'
         )
@@ -55,17 +57,28 @@ def cronista_scraping() -> list[dict] | None:
         '//tr//td[@class="date"]/a/text()'
         )
     logging.info(f"Extracted update dates: {len(dollar_date_list)}")
-    
+
     # Structure the data
     list_jsn = []
     jsn = {}
 
     try:
         for position in range(len(dollar_name_list)):
-            
-            if dollar_name_list[position] == "DÓLAR TURISTA":
 
-                jsn[dollar_name_list[position]] = {
+            if "bna" in dollar_name_list[position].lower():
+                dollar_name = "dólar oficial"
+            elif "liq" in dollar_name_list[position].lower():
+                dollar_name = "dólar ccl"
+            elif "mep" in dollar_name_list[position].lower():
+                dollar_name = "dólar mep"
+            elif "blue" in dollar_name_list[position].lower():
+                dollar_name = "dólar libre"
+            else:
+                dollar_name = dollar_name_list[position].lower()
+
+            if "turista" in dollar_name:
+
+                jsn[dollar_name] = {
                     "venta": dollar_sell_list[position],
                     "date": dollar_date_list[position],
                 }
@@ -73,11 +86,11 @@ def cronista_scraping() -> list[dict] | None:
                 # A number is added in the position to balance
                 # the length of the lists, due to the fact that
                 # "tourist dollar" is the only dollar that
-                #  does not have a purchase price 
-                dollar_buy_list.insert(0,position)
+                #  does not have a purchase price
+                dollar_buy_list.insert(0, position)
 
             else:
-                jsn[dollar_name_list[position]] = {
+                jsn[dollar_name] = {
                         "compra": dollar_buy_list[position],
                         "venta": dollar_sell_list[position],
                         "date": dollar_date_list[position],
@@ -86,7 +99,6 @@ def cronista_scraping() -> list[dict] | None:
     except Exception as e:
         logging.error("Error structuring data: " + str(e))
         return None
-    
-    list_jsn.append(jsn)
 
-    return list_jsn
+    list_jsn.append(jsn)
+    return jsn
