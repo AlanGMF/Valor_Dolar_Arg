@@ -5,5 +5,3 @@ client = MongoClient(
     )
 
 db = client.dolares
-collection_dolarhoy = db["dolarhoy"]
-collection_infobae = db["infobae"]
