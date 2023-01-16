@@ -61,7 +61,7 @@ def compare_last_date(collection, data: dict) -> dict:
 
 @app.on_event("startup")
 @repeat_every(seconds=60*MINUTES_FOR_RERUN, wait_first=False)
-def save_dolarhoy_dollars_values() -> None:
+def run_web_scraping() -> None:
 
     dolarhoy_dollars_data = dolarhoy_scraping()
     cronista_dollars_data = cronista_scraping()

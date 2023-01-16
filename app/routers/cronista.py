@@ -17,7 +17,7 @@ class Cronista_dollars(str, Enum):
 
 
 @cronista_router.get("/cronista/{dolar}/")
-def dolarhoy_dolaaar_amount(
+def cronista_dollar_amount(
     dolar: Cronista_dollars = Path(
         ...,
         title="Name of dollars to get",
@@ -44,7 +44,7 @@ def dolarhoy_dolaaar_amount(
 
 
 @cronista_router.get("/cronista/{dolar}")
-def dolarhoaay_dolar_amount(
+def cronista_dollar(
     dolar: Cronista_dollars = Path(
         ...,
         title="Name of dollars to get",

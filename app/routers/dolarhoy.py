@@ -16,7 +16,7 @@ class Dolarhoy_dollars(str, Enum):
 
 
 @dolarhoy_router.get("/dolarhoy/{dolar}/")
-def dolarhoy_doladdr_amount(
+def dolarhoy_dollar_amount(
     dolar: Dolarhoy_dollars = Path(
         ...,
         title="Name of dollars to get",
@@ -44,7 +44,7 @@ def dolarhoy_doladdr_amount(
 
 
 @dolarhoy_router.get("/dolarhoy/{dolar}")
-def dolarhoy_dddolar_amount(
+def dolarhoy_dollar(
     dolar: Dolarhoy_dollars = Path(
         ...,
         title="Name of dollars to get",

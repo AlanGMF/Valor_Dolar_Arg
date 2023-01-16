@@ -31,7 +31,7 @@ def get_last_page_values(collection, page: str) -> dict:
 
 
 @root_router.get("/")
-def lastest_values():
+def lastest_dollar_values():
     """
     Return the latest free dollar values that pages have
     """
