@@ -11,6 +11,8 @@ Collect every 20 minutes the values of the dollar in Argentina from different pa
 ```
 git clone https://github.com/AlanGMF/Valor_Dolar_Arg.git
 ```
+## Configs
+You can change the container keys in the [this](https://github.com/AlanGMF/Valor_Dolar_Arg/blob/main/docker-compose.yml) file. Be sure to change them in the [.env](https://github.com/AlanGMF/Valor_Dolar_Arg/blob/main/app/.env) file as well.
 ## Run
   Start service on /Valor_Dolar_Arg:
   ```
